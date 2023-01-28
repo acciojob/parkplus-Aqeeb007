@@ -34,7 +34,7 @@ public class ParkingLotServiceImpl implements ParkingLotService {
     public Spot addSpot(int parkingLotId, Integer numberOfWheels, Integer pricePerHour) {
         Spot spot = new Spot();
 
-        if(numberOfWheels <= 2){
+        if(numberOfWheels == 2){
             spot.setSpotType(SpotType.TWO_WHEELER);
         }else if (numberOfWheels <= 4){
             spot.setSpotType(SpotType.FOUR_WHEELER);
@@ -47,7 +47,9 @@ public class ParkingLotServiceImpl implements ParkingLotService {
 
         ParkingLot parkingLot = parkingLotRepository1.findById(parkingLotId).get();
         spot.setParkingLot(parkingLot);
-        parkingLot.getSpotList().add(spot);
+        List<Spot> spotList = parkingLot.getSpotList();
+        spotList.add(spot);
+        parkingLot.setSpotList(spotList);
 
         parkingLotRepository1.save(parkingLot);
         return spot;
@@ -56,6 +58,15 @@ public class ParkingLotServiceImpl implements ParkingLotService {
 
     @Override
     public void deleteSpot(int spotId) {
+        Spot spot = spotRepository1.findById(spotId).get();
+        ParkingLot parkingLot = spot.getParkingLot();
+        spot.setParkingLot(parkingLot);
+
+        List<Spot> spotList = parkingLot.getSpotList();
+        spotList.remove(spot);
+        parkingLot.setSpotList(spotList);
+
+        parkingLotRepository1.save(parkingLot);
         spotRepository1.deleteById(spotId);
     }
 
@@ -78,12 +89,10 @@ public class ParkingLotServiceImpl implements ParkingLotService {
     public void deleteParkingLot(int parkingLotId) {
         ParkingLot parkingLot = parkingLotRepository1.findById(parkingLotId).get();
 
-        List<Spot> spotList = parkingLot.getSpotList();
-        if(spotList != null) {
-            for (Spot spot : spotList) {
-                spotRepository1.delete(spot);
-            }
-        }
+//        List<Spot> spotList = parkingLot.getSpotList();
+//            for (Spot spot : spotList) {
+//                spotRepository1.delete(spot);
+//            }
 
         parkingLotRepository1.delete(parkingLot);
 
