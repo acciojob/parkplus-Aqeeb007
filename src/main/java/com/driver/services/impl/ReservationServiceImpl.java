@@ -23,6 +23,45 @@ public class ReservationServiceImpl implements ReservationService {
     ParkingLotRepository parkingLotRepository3;
     @Override
     public Reservation reserveSpot(Integer userId, Integer parkingLotId, Integer timeInHours, Integer numberOfWheels) throws Exception {
+        ParkingLot parkingLot = parkingLotRepository3.findById(parkingLotId).get();
 
+        List<Spot> spotList = parkingLot.getSpotList();
+
+        Spot spot = null;
+
+        for(Spot spot1 : spotList){
+            if(spot1.getOccupied() == Boolean.FALSE && numberOfWheels == 2){
+                if(spot == null || spot1.getPricePerHour()*timeInHours < spot.getPricePerHour()*timeInHours){
+                    spot = spot1;
+                }
+            }
+
+            if(spot1.getOccupied() == Boolean.FALSE && numberOfWheels == 4){
+                if(spot == null || (spot1.getSpotType() != SpotType.TWO_WHEELER && spot1.getPricePerHour()*timeInHours < spot.getPricePerHour()*timeInHours)){
+                    spot = spot1;
+                }
+            }else{
+                if(spot == null || (spot1.getSpotType() == SpotType.OTHERS && spot1.getPricePerHour()*timeInHours < spot.getPricePerHour()*timeInHours)){
+                    spot = spot1;
+                }
+            }
+        }
+
+        spot.setOccupied(Boolean.TRUE);
+
+        User user = userRepository3.findById(userId).get();
+
+        Reservation reservation = new Reservation();
+        reservation.setSpot(spot);
+        reservation.setUser(user);
+        reservation.setNumberOfHour(timeInHours);
+        user.getReservationList().add(reservation);
+        parkingLot.getSpotList().add(spot);
+
+
+        userRepository3.save(user);
+        parkingLotRepository3.save(parkingLot);
+
+        return reservation;
     }
 }
